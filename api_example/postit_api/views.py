@@ -51,21 +51,22 @@ class CommentList(generics.ListCreateAPIView):
         queryset = super().get_queryset().filter(post=post)
         return queryset
 
+
 class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def delete(self, request, *args, **kwargs):
-        Comment = Post.objects.filter(pk=kwargs['pk'], user=self.request.user)
-        if Comment.exists():
+        comment = Comment.objects.filter(pk=kwargs['pk'], user=self.request.user)
+        if comment.exists():
             return self.destroy(request, *args, **kwargs)
         else:
-            raise ValidationError(_("Cannot delete posts of other users!"))
+            raise ValidationError(_("Cannot delete comments of other users!"))
     
     def put(self, request, *args, **kwargs):
-        Comment = Post.objects.filter(pk=kwargs['pk'], user=self.request.user)
-        if Comment.exists():
+        comment = Comment.objects.filter(pk=kwargs['pk'], user=self.request.user)
+        if comment.exists():
             return self.update(request, *args, **kwargs)
         else:
-            raise ValidationError(_("Cannot edit posts of other users!"))
+            raise ValidationError(_("Cannot edit comments of other users!"))
