@@ -34,7 +34,7 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
             return self.destroy(request, *args, **kwargs)
         else:
             raise ValidationError(_("Cannot delete posts of other users!"))
-    
+
     def put(self, request, *args, **kwargs):
         post = Post.objects.filter(pk=kwargs['pk'], user=self.request.user)
         if post.exists():
@@ -64,14 +64,16 @@ class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def delete(self, request, *args, **kwargs):
-        comment = Comment.objects.filter(pk=kwargs['pk'], user=self.request.user)
+        comment = Comment.objects.filter(
+            pk=kwargs['pk'], user=self.request.user)
         if comment.exists():
             return self.destroy(request, *args, **kwargs)
         else:
             raise ValidationError(_("Cannot delete comments of other users!"))
-    
+
     def put(self, request, *args, **kwargs):
-        comment = Comment.objects.filter(pk=kwargs['pk'], user=self.request.user)
+        comment = Comment.objects.filter(
+            pk=kwargs['pk'], user=self.request.user)
         if comment.exists():
             return self.update(request, *args, **kwargs)
         else:
@@ -86,7 +88,7 @@ class PostLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
         user = self.request.user
         post = Post.objects.get(pk=self.kwargs['pk'])
         return PostLike.objects.filter(post=post, user=user)
-    
+
     def perform_create(self, serializer):
         user = self.request.user
         post = Post.objects.get(pk=self.kwargs['pk'])
@@ -99,17 +101,19 @@ class PostLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
             self.get_queryset().delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-            raise ValidationError(_('You have no likes to remove for this post.'))
-    
+            raise ValidationError(
+                _('You have no likes to remove for this post.'))
+
+
 class CommentLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
     serializer_class = CommentLikeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        user = user=self.request.user
+        user = user = self.request.user
         comment = Comment.objects.get(pk=self.kwargs['pk'])
         return CommentLike.objects.filter(comment=comment, user=user)
-    
+
     def perform_create(self, serializer):
         comment = Comment.objects.get(pk=self.kwargs['pk'])
         if self.get_queryset().exists():
