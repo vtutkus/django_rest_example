@@ -101,8 +101,7 @@ class PostLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
             self.get_queryset().delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-            raise ValidationError(
-                _('You have no likes to remove for this post.'))
+            raise ValidationError(_('You have no likes to remove for this post.'))
 
 
 class CommentLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
@@ -110,20 +109,20 @@ class CommentLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        user = user = self.request.user
+        user = self.request.user
         comment = Comment.objects.get(pk=self.kwargs['pk'])
         return CommentLike.objects.filter(comment=comment, user=user)
-
+    
     def perform_create(self, serializer):
+        user = self.request.user
         comment = Comment.objects.get(pk=self.kwargs['pk'])
         if self.get_queryset().exists():
-            raise ValidationError(_('you already liked this comment'))
-        serializer.save(user=self.request.user, comment=comment)
-        return super().perform_create(serializer)
-
+            raise ValidationError(_('You have already liked this comment.'))
+        serializer.save(user=user, comment=comment)
+        
     def delete(self, request, *args, **kwargs):
         if self.get_queryset().exists():
             self.get_queryset().delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-            raise ValidationError(_('you have no likes to remove'))
+            raise ValidationError(_('You have no likes to remove for this comment.'))
