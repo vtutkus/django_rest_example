@@ -14,6 +14,26 @@ class UserCreate(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
 
 
+class UserDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def delete(self, request, *args, **kwargs):
+        user = User.objects.filter(pk=kwargs['pk'], id=self.request.user.id)
+        if user.exists():
+            return self.destroy(request, *args, **kwargs)
+        else:
+            raise ValidationError(_("Cannot delete other user!"))
+
+    def put(self, request, *args, **kwargs):
+        user = User.objects.filter(pk=kwargs['pk'], id=self.request.user.id)
+        if user.exists():
+            return self.update(request, *args, **kwargs)
+        else:
+            raise ValidationError(_("Cannot edit posts of other users!"))
+
+
 class PostList(generics.ListCreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -101,7 +121,8 @@ class PostLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
             self.get_queryset().delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-            raise ValidationError(_('You have no likes to remove for this post.'))
+            raise ValidationError(
+                _('You have no likes to remove for this post.'))
 
 
 class CommentLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
@@ -112,17 +133,18 @@ class CommentLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
         user = self.request.user
         comment = Comment.objects.get(pk=self.kwargs['pk'])
         return CommentLike.objects.filter(comment=comment, user=user)
-    
+
     def perform_create(self, serializer):
         user = self.request.user
         comment = Comment.objects.get(pk=self.kwargs['pk'])
         if self.get_queryset().exists():
             raise ValidationError(_('You have already liked this comment.'))
         serializer.save(user=user, comment=comment)
-        
+
     def delete(self, request, *args, **kwargs):
         if self.get_queryset().exists():
             self.get_queryset().delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-            raise ValidationError(_('You have no likes to remove for this comment.'))
+            raise ValidationError(
+                _('You have no likes to remove for this comment.'))
