@@ -9,6 +9,10 @@ class Post(models.Model):
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE,
     )
+    image = models.ImageField(
+        upload_to='post_images', 
+        null=True, blank=True,
+    )
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     def __str__(self):
