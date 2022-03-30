@@ -1,9 +1,10 @@
-from django.shortcuts import render
-from rest_framework import generics, permissions
+# from django.shortcuts import render
+from rest_framework import generics, permissions, mixins, status
+from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from .models import Post, Comment, PostLike, CommentLike
-from .serializers import PostSerializer, CommentSerializer
+from .serializers import PostSerializer, CommentSerializer, PostLikeSerializer
 
 
 class PostList(generics.ListCreateAPIView):
@@ -13,7 +14,6 @@ class PostList(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-        return super().perform_create(serializer)
 
 
 class PostDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -44,7 +44,6 @@ class CommentList(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         post = Post.objects.get(pk=self.kwargs['pk'])
         serializer.save(user=self.request.user, post=post)
-        return super().perform_create(serializer)
 
     def get_queryset(self):
         post = Post.objects.get(pk=self.kwargs['pk'])
@@ -70,3 +69,28 @@ class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
             return self.update(request, *args, **kwargs)
         else:
             raise ValidationError(_("Cannot edit comments of other users!"))
+
+
+class PostLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
+    serializer_class = PostLikeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        post = Post.objects.get(pk=self.kwargs['pk'])
+        return PostLike.objects.filter(post=post, user=user)
+    
+    def perform_create(self, serializer):
+        user = self.request.user
+        post = Post.objects.get(pk=self.kwargs['pk'])
+        if self.get_queryset().exists():
+            raise ValidationError(_('You have already liked this post.'))
+        serializer.save(user=user, post=post)
+
+    def delete(self, request, *args, **kwargs):
+        if self.get_queryset().exists():
+            self.get_queryset().delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            raise ValidationError(_('You have no likes to remove for this post.'))
+    
