@@ -10,7 +10,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['username', 'password']
         extra_kwargs = {'password': {'write_only': True}}
 
-
     def create(self, validated_data):
         password = validated_data.pop('password')
         user = User(**validated_data)
@@ -23,10 +22,14 @@ class CommentSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')
     user_id = serializers.ReadOnlyField(source='user.id')
     post = serializers.ReadOnlyField(source='post.id')
+    likes_count = serializers.SerializerMethodField()
+
+    def get_likes_count(self, obj):
+        return CommentLike.objects.filter(comment=obj).count()   
 
     class Meta:
         model = Comment
-        fields = ['id', 'user', 'user_id', 'post', 'body', 'created_at']
+        fields = ['id', 'user', 'user_id', 'post', 'body', 'created_at', 'likes_count']
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -52,3 +55,8 @@ class PostLikeSerializer(serializers.ModelSerializer):
         model = PostLike
         fields = ['id']
 
+
+class CommentLikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommentLike
+        fields = ['id']
