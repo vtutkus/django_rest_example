@@ -2,9 +2,16 @@
 from rest_framework import generics, permissions, mixins, status
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
+from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 from .models import Post, Comment, PostLike, CommentLike
-from .serializers import PostSerializer, CommentSerializer, PostLikeSerializer
+from .serializers import PostSerializer, CommentSerializer, PostLikeSerializer, UserSerializer
+
+
+class UserCreate(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.AllowAny]
 
 
 class PostList(generics.ListCreateAPIView):
