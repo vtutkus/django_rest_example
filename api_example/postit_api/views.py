@@ -5,13 +5,44 @@ from rest_framework.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 from .models import Post, Comment, PostLike, CommentLike
-from .serializers import PostSerializer, CommentSerializer, PostLikeSerializer, UserSerializer, CommentLikeSerializer
+from .serializers import PostSerializer, CommentSerializer, CommentLikeSerializer, PostLikeSerializer, UserPasswordSerializer, UserDetailSerializer
 
 
 class UserCreate(generics.CreateAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserPasswordSerializer
     permission_classes = [permissions.AllowAny]
+
+class UserUpdatePassword(generics.RetrieveUpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserPasswordSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def put(self, request, *args, **kwargs):
+        user = User.objects.filter(pk=kwargs['pk'], id=self.request.user.id)
+        if user.exists():
+            return self.update(request, *args, **kwargs)
+        else:
+            raise ValidationError(_("Cannot edit other users passwords!"))
+
+class UserDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserDetailSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def delete(self, request, *args, **kwargs):
+        user = User.objects.filter(pk=kwargs['pk'], id=self.request.user.id)
+        if user.exists():
+            return self.destroy(request, *args, **kwargs)
+        else:
+            raise ValidationError(_("Cannot delete other user!"))
+
+    def put(self, request, *args, **kwargs):
+        user = User.objects.filter(pk=kwargs['pk'], id=self.request.user.id)
+        if user.exists():
+            return self.update(request, *args, **kwargs)
+        else:
+            raise ValidationError(_("Cannot edit other user!"))
 
 
 class UserList(generics.ListCreateAPIView):
@@ -133,7 +164,8 @@ class PostLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
             self.get_queryset().delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-            raise ValidationError(_('You have no likes to remove for this post.'))
+            raise ValidationError(
+                _('You have no likes to remove for this post.'))
 
 
 class CommentLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
@@ -144,17 +176,18 @@ class CommentLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
         user = self.request.user
         comment = Comment.objects.get(pk=self.kwargs['pk'])
         return CommentLike.objects.filter(comment=comment, user=user)
-    
+
     def perform_create(self, serializer):
         user = self.request.user
         comment = Comment.objects.get(pk=self.kwargs['pk'])
         if self.get_queryset().exists():
             raise ValidationError(_('You have already liked this comment.'))
         serializer.save(user=user, comment=comment)
-        
+
     def delete(self, request, *args, **kwargs):
         if self.get_queryset().exists():
             self.get_queryset().delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-            raise ValidationError(_('You have no likes to remove for this comment.'))
+            raise ValidationError(
+                _('You have no likes to remove for this comment.'))
