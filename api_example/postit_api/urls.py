@@ -9,5 +9,5 @@ urlpatterns = [
     path('comments/<int:pk>', CommentDetail.as_view()),
     path('comments/<int:pk>/like', CommentLikeCreate.as_view()),
     path('users/<int:pk>', UserDetail.as_view()),
-    path('signup', UserCreate.as_view())
+    path('signup', UserCreate.as_view()),
 ]
