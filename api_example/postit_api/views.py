@@ -5,7 +5,7 @@ from rest_framework.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 from .models import Post, Comment, PostLike, CommentLike
-from .serializers import PostSerializer, CommentSerializer, CommentLikeSerializer, PostLikeSerializer, UserPasswordSerializer, UserDetailSerializer, UserListSerializer
+from .serializers import PostSerializer, CommentSerializer, CommentLikeSerializer, PostLikeSerializer, UserPasswordSerializer, UserDetailSerializer
 
 
 class UserCreate(generics.CreateAPIView):
@@ -49,12 +49,12 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class UserList(generics.ListCreateAPIView):
     queryset = User.objects.all()
-    serializer_class = UserListSerializer
+    serializer_class = UserDetailSerializer
     permission_classes = [permissions.AllowAny]
 
     def list(self, request):
         queryset = self.get_queryset()
-        serializer = UserListSerializer(queryset, many=True)
+        serializer = UserDetailSerializer(queryset, many=True)
         return Response(serializer.data)
 
 
