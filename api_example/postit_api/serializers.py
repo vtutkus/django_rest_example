@@ -4,7 +4,7 @@ from rest_framework import serializers
 from .models import Post, Comment, PostLike, CommentLike
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserPasswordSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'password']
@@ -16,6 +16,19 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
+    
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password')
+        instance.username = validated_data.pop('username')
+        instance.set_password(password) 
+        instance.save()
+        return instance
+
+class UserDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email']
+
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -29,7 +42,8 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ['id', 'user', 'user_id', 'post', 'body', 'created_at', 'likes_count']
+        fields = ['id', 'user', 'user_id', 'post',
+                  'body', 'created_at', 'likes_count']
 
 
 class PostSerializer(serializers.ModelSerializer):
