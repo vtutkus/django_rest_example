@@ -14,6 +14,38 @@ class UserCreate(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
 
 
+class UserList(generics.ListCreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def list(self, request):
+        queryset = self.get_queryset()
+        serializer = UserSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+##########
+class UserDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def delete(self, request, *args, **kwargs):
+        user = User.objects.filter(pk=kwargs['pk'])
+        if user.exists():
+            return self.destroy(request, *args, **kwargs)
+        else:
+            raise ValidationError(_("Cannot delete user!"))
+
+    def put(self, request, *args, **kwargs):
+        user = User.objects.filter(pk=kwargs['pk'])
+        if user.exists():
+            return self.update(request, *args, **kwargs)
+        else:
+            raise ValidationError(_("Cannot edit user!"))
+#############
+
+
 class PostList(generics.ListCreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
