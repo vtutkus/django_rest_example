@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import PostList, PostDetail, CommentList, CommentDetail, PostLikeCreate, CommentLikeCreate, UserCreate, UserList, UserDetail, UserUpdatePassword
+from .views import PostList, PostDetail, CommentList, CommentDetail, PostLikeCreate, CommentLikeCreate, UserCreate, UserDetail, UserUpdatePassword, UserList 
 
 urlpatterns = [
     path('posts', PostList.as_view()),

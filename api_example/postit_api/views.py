@@ -5,13 +5,14 @@ from rest_framework.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 from .models import Post, Comment, PostLike, CommentLike
-from .serializers import PostSerializer, CommentSerializer, CommentLikeSerializer, PostLikeSerializer, UserPasswordSerializer, UserDetailSerializer
+from .serializers import PostSerializer, CommentSerializer, CommentLikeSerializer, PostLikeSerializer, UserPasswordSerializer, UserDetailSerializer, UserListSerializer
 
 
 class UserCreate(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserPasswordSerializer
     permission_classes = [permissions.AllowAny]
+
 
 class UserUpdatePassword(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
@@ -24,6 +25,7 @@ class UserUpdatePassword(generics.RetrieveUpdateAPIView):
             return self.update(request, *args, **kwargs)
         else:
             raise ValidationError(_("Cannot edit other users passwords!"))
+
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
@@ -47,33 +49,13 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class UserList(generics.ListCreateAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserListSerializer
     permission_classes = [permissions.AllowAny]
 
     def list(self, request):
         queryset = self.get_queryset()
-        serializer = UserSerializer(queryset, many=True)
+        serializer = UserListSerializer(queryset, many=True)
         return Response(serializer.data)
-
-
-class UserDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-    def delete(self, request, *args, **kwargs):
-        user = User.objects.filter(pk=kwargs['pk'])
-        if user.exists():
-            return self.destroy(request, *args, **kwargs)
-        else:
-            raise ValidationError(_("Cannot delete user!"))
-
-    def put(self, request, *args, **kwargs):
-        user = User.objects.filter(pk=kwargs['pk'])
-        if user.exists():
-            return self.update(request, *args, **kwargs)
-        else:
-            raise ValidationError(_("Cannot edit user!"))
 
 
 class PostList(generics.ListCreateAPIView):
