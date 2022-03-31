@@ -24,11 +24,11 @@ class UserPasswordSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+
 class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'email']
-
+        fields = ['id', 'username', 'first_name', 'last_name', 'email']
 
 
 class CommentSerializer(serializers.ModelSerializer):

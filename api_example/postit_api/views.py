@@ -13,6 +13,7 @@ class UserCreate(generics.CreateAPIView):
     serializer_class = UserPasswordSerializer
     permission_classes = [permissions.AllowAny]
 
+
 class UserUpdatePassword(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UserPasswordSerializer
@@ -24,6 +25,7 @@ class UserUpdatePassword(generics.RetrieveUpdateAPIView):
             return self.update(request, *args, **kwargs)
         else:
             raise ValidationError(_("Cannot edit other users passwords!"))
+
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
@@ -43,6 +45,17 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
             return self.update(request, *args, **kwargs)
         else:
             raise ValidationError(_("Cannot edit other user!"))
+
+
+class UserList(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserDetailSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def list(self, request):
+        queryset = self.get_queryset()
+        serializer = UserDetailSerializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class PostList(generics.ListCreateAPIView):
