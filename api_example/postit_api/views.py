@@ -24,7 +24,7 @@ class UserList(generics.ListCreateAPIView):
         serializer = UserSerializer(queryset, many=True)
         return Response(serializer.data)
 
-##########
+
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -43,7 +43,6 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
             return self.update(request, *args, **kwargs)
         else:
             raise ValidationError(_("Cannot edit user!"))
-#############
 
 
 class PostList(generics.ListCreateAPIView):
