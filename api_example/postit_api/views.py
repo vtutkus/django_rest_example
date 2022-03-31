@@ -47,10 +47,10 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
             raise ValidationError(_("Cannot edit other user!"))
 
 
-class UserList(generics.ListCreateAPIView):
+class UserList(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserDetailSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def list(self, request):
         queryset = self.get_queryset()
