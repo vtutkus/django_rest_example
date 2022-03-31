@@ -5,18 +5,29 @@ from rest_framework.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 from .models import Post, Comment, PostLike, CommentLike
-from .serializers import PostSerializer, CommentSerializer, PostLikeSerializer, UserSerializer, CommentLikeSerializer
+from .serializers import PostSerializer, CommentSerializer, CommentLikeSerializer, PostLikeSerializer, UserPasswordSerializer, UserDetailSerializer
 
 
 class UserCreate(generics.CreateAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserPasswordSerializer
     permission_classes = [permissions.AllowAny]
 
+class UserUpdatePassword(generics.RetrieveUpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserPasswordSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def put(self, request, *args, **kwargs):
+        user = User.objects.filter(pk=kwargs['pk'], id=self.request.user.id)
+        if user.exists():
+            return self.update(request, *args, **kwargs)
+        else:
+            raise ValidationError(_("Cannot edit other users passwords!"))
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserDetailSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def delete(self, request, *args, **kwargs):
@@ -31,7 +42,7 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
         if user.exists():
             return self.update(request, *args, **kwargs)
         else:
-            raise ValidationError(_("Cannot edit posts of other users!"))
+            raise ValidationError(_("Cannot edit other user!"))
 
 
 class PostList(generics.ListCreateAPIView):

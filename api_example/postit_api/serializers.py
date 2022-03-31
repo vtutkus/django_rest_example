@@ -4,18 +4,31 @@ from rest_framework import serializers
 from .models import Post, Comment, PostLike, CommentLike
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserPasswordSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'password', 'first_name', 'last_name', 'email']
+        fields = ['username', 'password']
         extra_kwargs = {'password': {'write_only': True}}
 
-        def create(self, validated_data):
-            password = validated_data.pop('password')
-            user = User(**validated_data)
-            user.set_password(password)
-            user.save()
-            return user
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
+    
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password')
+        instance.username = validated_data.pop('username')
+        instance.set_password(password) 
+        instance.save()
+        return instance
+
+class UserDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email']
+
 
 
 class CommentSerializer(serializers.ModelSerializer):
